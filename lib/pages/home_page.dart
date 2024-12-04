@@ -1,27 +1,21 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
+import 'package:weather_app/cubit/weather_cubit/weather_cubit.dart';
+import 'package:weather_app/cubit/weather_cubit/weather_states.dart';
 import 'package:weather_app/main.dart';
 import 'package:weather_app/models/weather_model.dart';
 import 'package:weather_app/pages/search_page.dart';
 import 'package:weather_app/providers/weather_provider.dart';
 
-class HomePage extends StatefulWidget {
-  HomePage({Key? key}) : super(key: key);
-
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  void updateUi() {
-    setState(() {});
-  }
-
+class HomePage extends StatelessWidget {
   WeatherModel? weatherData;
   @override
   Widget build(BuildContext context) {
-    weatherData = Provider.of<WeatherProvider>(context).weatherData;
+    // weatherData = Provider.of<WeatherProvider>(context).weatherData;
 
     return Scaffold(
       appBar: AppBar(
@@ -29,9 +23,7 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return SearchPage(
-                  updateUi: updateUi,
-                );
+                return SearchPage();
               }));
             },
             icon: Icon(Icons.search),
@@ -39,27 +31,15 @@ class _HomePageState extends State<HomePage> {
         ],
         title: Text('Weather App'),
       ),
-      body: Provider.of<WeatherProvider>(context).weatherData == null
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'there is no weather 😔 start',
-                    style: TextStyle(
-                      fontSize: 30,
-                    ),
-                  ),
-                  Text(
-                    'searching now 🔍',
-                    style: TextStyle(
-                      fontSize: 30,
-                    ),
-                  )
-                ],
-              ),
-            )
-          : Container(
+
+      body: BlocBuilder<WeatherCubit, WeatherStates>(
+        builder: (context, state) {
+          if (state is WeatherLoading) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          } else if (state is WeatherSuccess) {
+            return Container(
               decoration: BoxDecoration(
                   gradient: LinearGradient(
                 colors: [
@@ -122,7 +102,37 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ],
               ),
-            ),
+            );
+          } else if (state is WeatherFailure) {
+            return Center(
+              child: Text("Sorry Something went Wrong"),
+            );
+          } else {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'there is no weather 😔 start',
+                    style: TextStyle(
+                      fontSize: 30,
+                    ),
+                  ),
+                  Text(
+                    'searching now 🔍',
+                    style: TextStyle(
+                      fontSize: 30,
+                    ),
+                  )
+                ],
+              ),
+            );
+          }
+        },
+      ),
+
+      // body: Provider.of<WeatherProvider>(context).weatherData == null
+      //     ?
     );
   }
 }
